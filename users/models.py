@@ -4,6 +4,7 @@ from django.db import models
 
 class User(AbstractUser, PermissionsMixin):
     """Описывает пользователя"""
+
     phone = models.CharField(max_length=20, verbose_name="Телефон для связи")
     email = models.EmailField(unique=True, verbose_name="Электронная почта")
     image = models.ImageField(

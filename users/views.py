@@ -14,21 +14,20 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import User
-from .serializers import (
-    MyTokenObtainPairSerializer,
-    ResetPasswordSerializer,
-    ResetPasswordConfirmSerializer,
-    UserSerializer)
+from .serializers import (MyTokenObtainPairSerializer,
+                          ResetPasswordConfirmSerializer,
+                          ResetPasswordSerializer, UserSerializer)
 
 
 class UserViewSet(ModelViewSet):
     """Создаёт пользователя."""
+
     queryset = User.objects.all()
     serializer_class = UserSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
 
     def get_permissions(self):
-        if self.action == 'create':
+        if self.action == "create":
             return [AllowAny()]
         return super().get_permissions()
 
@@ -45,7 +44,7 @@ class ResetPasswordAPIViews(APIView):
     def post(self, request):
         serializer = ResetPasswordSerializer(data=request.data)
         if serializer.is_valid():
-            email = serializer.validated_data['email']
+            email = serializer.validated_data["email"]
             try:
                 user = User.objects.get(email__iexact=email)
             except User.DoesNotExist:
@@ -53,9 +52,7 @@ class ResetPasswordAPIViews(APIView):
             if user is not None:
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
                 token = default_token_generator.make_token(user)
-                frontend_url = getattr(
-                    settings, 'FRONTEND_PASSWORD_RESET_URL', ''
-                )
+                frontend_url = getattr(settings, "FRONTEND_PASSWORD_RESET_URL", "")
                 if frontend_url:
                     reset_link = f'{frontend_url.rstrip("/")}/{uid}/{token}'
                 else:

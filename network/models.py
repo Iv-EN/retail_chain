@@ -1,6 +1,7 @@
-from django.db import models
-from django.core.exceptions import ValidationError
 from decimal import Decimal
+
+from django.core.exceptions import ValidationError
+from django.db import models
 
 
 class NetworkObject(models.Model):
@@ -8,27 +9,25 @@ class NetworkObject(models.Model):
 
     name = models.CharField(max_length=255, verbose_name="Наименование")
     email = models.EmailField(blank=True, verbose_name="Электронная почта")
-    country = models.CharField(max_length=100, verbose_name='Страна')
-    city = models.CharField(max_length=100, verbose_name='Город')
+    country = models.CharField(max_length=100, verbose_name="Страна")
+    city = models.CharField(max_length=100, verbose_name="Город")
     street = models.CharField(max_length=255, verbose_name="Улица")
     house_number = models.CharField(max_length=5, verbose_name="Номер дома")
     supplier = models.ForeignKey(
-        'self',
-        null=True, blank=True,
+        "self",
+        null=True,
+        blank=True,
         on_delete=models.SET_NULL,
-        related_name='subordinates',
+        related_name="subordinates",
         verbose_name="Поставщик",
     )
     debt_to_supplier = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=Decimal('0.00'),
-        verbose_name='Долг перед поставщиком'
+        default=Decimal("0.00"),
+        verbose_name="Долг перед поставщиком",
     )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name="Время создания"
-    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
 
     class Meta:
         verbose_name = "Звено сети"
@@ -54,9 +53,7 @@ class NetworkObject(models.Model):
             visiting.add(node.pk)
             distance += 1
             if distance > 2:
-                raise ValidationError(
-                    "Глубина сети не может превышать 2 уровней"
-                )
+                raise ValidationError("Глубина сети не может превышать 2 уровней")
             node = node.supplier
         return distance
 
@@ -86,9 +83,7 @@ class NetworkObject(models.Model):
             visiting.add(node.pk)
             distance += 1
             if distance > 2:
-                raise ValidationError(
-                    "Глубина сети не может превышать 2 уровней"
-                )
+                raise ValidationError("Глубина сети не может превышать 2 уровней")
             node = node.supplier
 
     def clean(self):
@@ -98,14 +93,15 @@ class NetworkObject(models.Model):
 
 class Product(models.Model):
     """Описывает продукт."""
+
     name = models.CharField(max_length=255, verbose_name="Название продукта")
     model = models.CharField(max_length=255, verbose_name="Модель продукта")
     release_date = models.DateField(verbose_name="Дата выхода на рынок")
     network_object = models.ForeignKey(
         NetworkObject,
         on_delete=models.CASCADE,
-        related_name='products',
-        verbose_name='Звено сети'
+        related_name="products",
+        verbose_name="Звено сети",
     )
 
     class Meta:
@@ -114,4 +110,3 @@ class Product(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.model})"
-    
