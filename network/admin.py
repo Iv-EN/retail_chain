@@ -34,7 +34,7 @@ class NetworkObjectAdmin(admin.ModelAdmin):
         'level',
         'created_at',
     )
-    list_filter = ('name', 'city', 'country', 'product_name', 'product_model')
+    list_filter = ('name', 'city')
     readonly_fields = ('created_at',)
     inlines = [ProductInLine]
 
