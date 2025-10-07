@@ -1,9 +1,10 @@
 from decimal import Decimal
 
+from django.db import transaction
 from django.contrib import admin, messages
-from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils.html import format_html
+from django.forms import ValidationError
 
 from .models import NetworkObject, Product
 
@@ -18,7 +19,6 @@ class ProductAdmin(admin.ModelAdmin):
 class ProductInLine(admin.TabularInline):
     model = Product
     extra = 0
-    readonly_fields = ("release_date",)
     can_delete = True
 
 
@@ -34,14 +34,16 @@ class NetworkObjectAdmin(admin.ModelAdmin):
         "level",
         "created_at",
     )
-    list_filter = ("name", "city")
+    list_filter = ("city",)
     readonly_fields = ("created_at",)
     inlines = [ProductInLine]
 
     def supplier_link(self, obj):
         """Метод для отображения ссылки на поставщика."""
         if obj.supplier:
-            link = reverse("admin:network_networkobject_change", args=[obj.supplier.id])
+            link = reverse(
+                "admin:network_networkobject_change", args=[obj.supplier.id]
+            )
             return format_html('<a href="{}">{}</a>', link, obj.supplier.name)
         return "Поставщик отсутствует"
 
@@ -79,3 +81,11 @@ class NetworkObjectAdmin(admin.ModelAdmin):
             )
 
     clear_debt.short_description = "Очистить задолженность перед поставщиком"
+    
+    def save_model(self, request, obj, form, change):
+        try:
+            obj.full_clean()
+        except ValidationError as error:
+            form._errors = error.message_dict
+            return 
+        super().save_model(request, obj, form, change)

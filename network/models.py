@@ -1,7 +1,9 @@
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 
 class NetworkObject(models.Model):
@@ -27,7 +29,9 @@ class NetworkObject(models.Model):
         default=Decimal("0.00"),
         verbose_name="Долг перед поставщиком",
     )
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Время создания"
+    )
 
     class Meta:
         verbose_name = "Звено сети"
@@ -41,54 +45,39 @@ class NetworkObject(models.Model):
         """
         Вычисляет уровень иерархии объекта.
         """
-
-        distance = 0
-        node = self.supplier
-        visiting = set()
-        while node is not None:
-            if node.pk in visiting:
-                raise ValidationError(
-                    "В цепочке поставщиков обнаружена циклическая связь"
-                )
-            visiting.add(node.pk)
-            distance += 1
-            if distance > 2:
-                raise ValidationError("Глубина сети не может превышать 2 уровней")
-            node = node.supplier
-        return distance
+        try:
+            distance = 0
+            node = self.supplier
+            visiting = set()
+            while node is not None:
+                if node.pk == self.pk:
+                    return None
+                if node.pk in visiting:
+                    return None
+                visiting.add(node.pk)
+                distance += 1
+                if distance > 2:
+                    return None
+                node = node.supplier
+            return distance
+        except Exception:
+            return None
 
     def get_level_display(self):
         """Отображает уровень иерархии в виде строки."""
-        try:
-            lvl = self.level
-            if lvl == 0:
-                return "Завод"
-            elif lvl == 1:
-                return "Розничная сеть"
-            else:
-                return f"Уровень {lvl} (индивидуальный предприниматель)"
-        except ValidationError as error:
-            return f"Ошибка уровня: {error}"
+        lvl = self.level
+        if lvl is None:
+            return "Обнаружена проблема в цепочке поставщиков"
+        if lvl == 0:
+            return "Завод"
+        elif lvl == 1:
+            return "Розничная сеть"
+        else:
+            return f"Уровень 2 (индивидуальный предприниматель)"
 
-    def _validate_no_cycles(self):
-        """Защита на уровне валидации."""
-        visiting = set()
-        node = self.supplier
-        distance = 0
-        while node is not None:
-            if node.pk in visiting:
-                raise ValidationError(
-                    "В цепочке поставщиков обнаружена циклическая связь"
-                )
-            visiting.add(node.pk)
-            distance += 1
-            if distance > 2:
-                raise ValidationError("Глубина сети не может превышать 2 уровней")
-            node = node.supplier
-
-    def clean(self):
-        """Валидация перед сохранением в базу."""
-        self._validate_no_cycles()
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            super().save(*args, **kwargs)
 
 
 class Product(models.Model):

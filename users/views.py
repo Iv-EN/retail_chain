@@ -14,9 +14,12 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import User
-from .serializers import (MyTokenObtainPairSerializer,
-                          ResetPasswordConfirmSerializer,
-                          ResetPasswordSerializer, UserSerializer)
+from .serializers import (
+    MyTokenObtainPairSerializer,
+    ResetPasswordConfirmSerializer,
+    ResetPasswordSerializer,
+    UserSerializer,
+)
 
 
 class UserViewSet(ModelViewSet):
@@ -52,7 +55,9 @@ class ResetPasswordAPIViews(APIView):
             if user is not None:
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
                 token = default_token_generator.make_token(user)
-                frontend_url = getattr(settings, "FRONTEND_PASSWORD_RESET_URL", "")
+                frontend_url = getattr(
+                    settings, "FRONTEND_PASSWORD_RESET_URL", ""
+                )
                 if frontend_url:
                     reset_link = f'{frontend_url.rstrip("/")}/{uid}/{token}'
                 else:

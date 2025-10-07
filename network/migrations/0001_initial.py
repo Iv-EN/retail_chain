@@ -25,16 +25,32 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("name", models.CharField(max_length=255, verbose_name="Наименование")),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=255, verbose_name="Наименование"
+                    ),
+                ),
                 (
                     "email",
                     models.EmailField(
-                        blank=True, max_length=254, verbose_name="Электронная почта"
+                        blank=True,
+                        max_length=254,
+                        verbose_name="Электронная почта",
                     ),
                 ),
-                ("country", models.CharField(max_length=100, verbose_name="Страна")),
-                ("city", models.CharField(max_length=100, verbose_name="Город")),
-                ("street", models.CharField(max_length=255, verbose_name="Улица")),
+                (
+                    "country",
+                    models.CharField(max_length=100, verbose_name="Страна"),
+                ),
+                (
+                    "city",
+                    models.CharField(max_length=100, verbose_name="Город"),
+                ),
+                (
+                    "street",
+                    models.CharField(max_length=255, verbose_name="Улица"),
+                ),
                 (
                     "house_number",
                     models.CharField(max_length=5, verbose_name="Номер дома"),
@@ -85,13 +101,20 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "name",
-                    models.CharField(max_length=255, verbose_name="Название продукта"),
+                    models.CharField(
+                        max_length=255, verbose_name="Название продукта"
+                    ),
                 ),
                 (
                     "model",
-                    models.CharField(max_length=255, verbose_name="Модель продукта"),
+                    models.CharField(
+                        max_length=255, verbose_name="Модель продукта"
+                    ),
                 ),
-                ("release_date", models.DateField(verbose_name="Дата выхода на рынок")),
+                (
+                    "release_date",
+                    models.DateField(verbose_name="Дата выхода на рынок"),
+                ),
                 (
                     "network_object",
                     models.ForeignKey(

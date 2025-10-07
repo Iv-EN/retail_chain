@@ -1,0 +1,151 @@
+from decimal import Decimal
+
+from django.db import transaction
+from django.contrib import admin, messages
+from django.urls import reverse
+from django.utils.html import format_html
+from django.forms.models import inlineformset_factory
+
+from .forms import ProductForm
+from .models import NetworkObject, Product
+
+
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ("name", "model", "release_date", "network_object")
+    list_filter = ("network_object__name",)
+    search_fields = ("name", "model", "release_date", "network_object")
+
+
+class ProductInline(admin.TabularInline):
+    model = Product
+    extra = 1
+    fields = ('name', 'model', 'release_date')
+    verbose_name = "Продукт"
+    verbose_name_plural = "Продукты"
+
+
+    def get_formset(self, request, obj=None, **kwargs):
+        """Связывает Product с NetworkObject."""
+        FormSet = inlineformset_factory(
+            NetworkObject,
+            Product,
+            form=self.form,
+            fk_name='network_object',
+            can_delete=True,
+            extra=self.extra,
+        )
+        if obj and obj.level > 0:
+            if obj.supplier:
+                supplier_products = Product.objects.filter(network_object=obj.supplier)
+            else:
+                supplier_products = Product.objects.none()
+            if obj:
+                if obj.supplier:
+                    available_products = Product.objects.filter(network_object=obj.supplier)
+                    pass
+                else:
+                    pass
+        return FormSet
+
+    def formsetfield_from_modelform(self, form_class, fk_name, request, extra,
+                                    **kwargs):
+        """Создаёт экземпляры inline-формы."""
+        return inlineformset_factory(
+            form_class,
+            self.model,
+            fk_name=fk_name,
+            fields=form_class._meta.fields,
+            exclude=form_class._meta.exclude,
+            extra=extra,
+            can_delete=True,
+            form=form_class,
+            **kwargs
+        )
+
+    def get_extra_context(self):
+        extra_context = super().get_extra_context()
+        extra_context[
+            'network_object_level'] = self.instance.level if self.instance else None
+        return extra_context
+
+
+@admin.register(NetworkObject)
+class NetworkObjectAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "email",
+        "country",
+        "city",
+        "supplier_link",
+        "debt_to_supplier",
+        "level",
+        "created_at",
+    )
+    list_filter = ("city",)
+    readonly_fields = ("created_at",)
+    inlines = [ProductInlineFormSet]
+
+    def get_formset_classes(self):
+        return super().get_formset_classes()
+
+    def get_inline_formsets(self, request, formset, inline, instance=None, **kwargs):
+        product_model = inline.model
+        if product_model == Product:
+            pass
+        return super().get_inline_formsets(request, formset, inline, instance, **kwargs)
+
+    def save_formset(self, request, form, formset, change):
+        if formset.model == Product:
+            for added_form in formset.new_objects:
+                # added_form - это уже созданный объект Product
+                if added_form.network_object and added_form.network_object.level > 0:
+                    pass
+
+        with transaction.atomic():
+            super().save_formset(request, form, formset, change)
+
+    class Media:
+        js = ('js/network_object_admin.js',)  # Укажите путь к вашему JS файлу
+
+    def supplier_link(self, obj):
+        """Метод для отображения ссылки на поставщика."""
+        if obj.supplier:
+            link = reverse(
+                "admin:network_networkobject_change", args=[obj.supplier.id]
+            )
+            return format_html('<a href="{}">{}</a>', link, obj.supplier.name)
+        return "Поставщик отсутствует"
+
+    supplier_link.short_description = "Поставщик"
+
+    def level_display(self, obj):
+        """Метод для отображения уровня иерархии."""
+        return obj.get_level_display()
+
+    level_display.short_description = "Уровень"
+    level_display.admin_order_field = "Level"
+
+    actions = ["clear_debt"]
+    """Admin action для очистки задолженности."""
+
+    def clear_debt(self, request, queryset):
+        """Метод для очистки задолженности перед поставщиком."""
+        update_count = 0
+        for obj in queryset:
+            if obj.debt_to_supplier > Decimal("0.00"):
+                obj.debt_to_supplier = Decimal("0.00")
+                obj.save()
+                update_count += 1
+        if update_count > 0:
+            self.message_user(
+                request,
+                f"Для {update_count} "
+                f"объектов задолженность перед поставщиком успешно очищена.",
+            )
+        else:
+            self.message_user(
+                request, "Объектов с задолженностью нет.", messages.WARNING
+            )
+
+    clear_debt.short_description = "Очистить задолженность перед поставщиком"
