@@ -2,8 +2,6 @@ from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
 
 
 class NetworkObject(models.Model):
@@ -45,38 +43,58 @@ class NetworkObject(models.Model):
         """
         Вычисляет уровень иерархии объекта.
         """
-        try:
-            distance = 0
-            node = self.supplier
-            visiting = set()
-            while node is not None:
-                if node.pk == self.pk:
-                    return None
-                if node.pk in visiting:
-                    return None
-                visiting.add(node.pk)
-                distance += 1
-                if distance > 2:
-                    return None
-                node = node.supplier
-            return distance
-        except Exception:
-            return None
+        distance = 0
+        node = self.supplier
+        visiting = set()
+        while node is not None:
+            visiting.add(node.pk)
+            distance += 1
+            if distance > 2:
+                return -2
+            node = node.supplier
+        return distance
 
     def get_level_display(self):
         """Отображает уровень иерархии в виде строки."""
         lvl = self.level
         if lvl is None:
             return "Обнаружена проблема в цепочке поставщиков"
+        if lvl == -1:
+            return "Обнаружена циклическая связь"
+        if lvl == -2:
+            return "цепочка поставщиков превышает 3 звена"
         if lvl == 0:
             return "Завод"
         elif lvl == 1:
             return "Розничная сеть"
         else:
-            return f"Уровень 2 (индивидуальный предприниматель)"
+            return f"Индивидуальный предприниматель"
+
+    def clean(self):
+        """
+        Выполняет дополнительные проверки перед сохранением объекта.
+        """
+        if self.supplier and self.supplier.pk == self.pk:
+            raise ValidationError(
+                "Объект не может быть своим собственным поставщиком."
+            )
+        if self.supplier:
+            visited_ids = set()
+            current_node = self.supplier
+            distance = 0
+            while current_node is not None:
+                if current_node.pk == self.pk:
+                    raise ValidationError("Обнаружена циклическая связь.")
+                distance += 1
+                if distance > 2:
+                    raise ValidationError(
+                        "Цепочка поставщиков не может содержать более 3 звеньев."
+                    )
+                current_node = current_node.supplier
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
+            self.full_clean()
             super().save(*args, **kwargs)
 
 
