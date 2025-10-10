@@ -7,7 +7,11 @@ from .views import NetworkObjectViewSet
 app_name = NetworkConfig.name
 
 router = routers.DefaultRouter()
-router.register(r"network_objects", NetworkObjectViewSet, basename="network_objects")
+router.register(
+    r"network_objects",
+    NetworkObjectViewSet,
+    basename="network_objects"
+)
 
 urlpatterns = [
     path("api/", include(router.urls)),
