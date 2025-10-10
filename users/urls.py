@@ -10,7 +10,7 @@ from .views import (MyTokenObtainPairView, ResetPasswordAPIViews,
 app_name = UsersConfig.name
 
 router = SimpleRouter()
-router.register("", UserViewSet)
+router.register("", UserViewSet, basename="users")
 
 urlpatterns = [
     path(

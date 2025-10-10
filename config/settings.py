@@ -12,7 +12,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 DEBUG = os.getenv("DEBUG") == "True"
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "host.docker.internal"]
 
 AUTH_USER_MODEL = "users.User"
 
@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "users.apps.UsersConfig",
     "network.apps.NetworkConfig",
+    "django_extensions",
 ]
 
 REST_FRAMEWORK = {
@@ -43,8 +44,8 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",
         "users.permissions.IsActiveUser",
+        "rest_framework.permissions.IsAuthenticated",
     ),
 }
 
