@@ -1,4 +1,4 @@
-name: Main bulletin-board workflow
+name: Main retail_chain workflow
 
 on:
   push:
