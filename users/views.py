@@ -14,12 +14,9 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import User
-from .serializers import (
-    MyTokenObtainPairSerializer,
-    ResetPasswordConfirmSerializer,
-    ResetPasswordSerializer,
-    UserSerializer,
-)
+from .serializers import (MyTokenObtainPairSerializer,
+                          ResetPasswordConfirmSerializer,
+                          ResetPasswordSerializer, UserSerializer)
 
 
 class UserViewSet(ModelViewSet):
