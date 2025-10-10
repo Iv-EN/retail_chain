@@ -97,9 +97,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "phone",
-                    models.CharField(
-                        max_length=20, verbose_name="Телефон для связи"
-                    ),
+                    models.CharField(max_length=20, verbose_name="Телефон для связи"),
                 ),
                 (
                     "email",

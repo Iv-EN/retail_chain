@@ -27,9 +27,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "name",
-                    models.CharField(
-                        max_length=255, verbose_name="Наименование"
-                    ),
+                    models.CharField(max_length=255, verbose_name="Наименование"),
                 ),
                 (
                     "email",
@@ -101,15 +99,11 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "name",
-                    models.CharField(
-                        max_length=255, verbose_name="Название продукта"
-                    ),
+                    models.CharField(max_length=255, verbose_name="Название продукта"),
                 ),
                 (
                     "model",
-                    models.CharField(
-                        max_length=255, verbose_name="Модель продукта"
-                    ),
+                    models.CharField(max_length=255, verbose_name="Модель продукта"),
                 ),
                 (
                     "release_date",

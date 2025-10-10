@@ -129,9 +129,7 @@ class NetworkObjectTests(BaseTestCase):
         """Тестирование фильтрации объектов по стране."""
         self.create_network_object(name="Российский объект", country="Россия")
         self.create_network_object(name="Украинский объект", country="Украина")
-        self.create_network_object(
-            name="Еще один российский", country="Россия"
-        )
+        self.create_network_object(name="Еще один российский", country="Россия")
 
         url = f"{NETWORK_OBJECTS_URL}?country=Россия"
         response = self.client.get(url, format="json")
@@ -196,9 +194,7 @@ class NetworkObjectTests(BaseTestCase):
     def test_clean_circular_dependency_validation(self):
         """Тестирование валидации циклической зависимости."""
         supplier1 = self.create_network_object(name="Supplier 1")
-        supplier2 = self.create_network_object(
-            name="Supplier 2", supplier=supplier1
-        )
+        supplier2 = self.create_network_object(name="Supplier 2", supplier=supplier1)
         supplier1.supplier = supplier2  # Создаем цикл
         with pytest.raises(ValidationError) as excinfo:
             supplier1.full_clean()

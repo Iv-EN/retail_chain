@@ -20,9 +20,7 @@ schema_view = get_schema_view(
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("users/", include("users.urls", namespace="users")),
-    path(
-        "network/", include(("network.urls", "network"), namespace="network")
-    ),
+    path("network/", include(("network.urls", "network"), namespace="network")),
 ]
 urlpatterns += [
     path(

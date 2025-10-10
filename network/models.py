@@ -6,6 +6,7 @@ from django.db import models, transaction
 
 class NetworkObject(models.Model):
     """Описывает звено сети."""
+
     name = models.CharField(max_length=255, verbose_name="Наименование")
     email = models.EmailField(blank=True, verbose_name="Электронная почта")
     country = models.CharField(max_length=100, verbose_name="Страна")
@@ -27,7 +28,8 @@ class NetworkObject(models.Model):
         verbose_name="Долг перед поставщиком",
     )
     created_at = models.DateTimeField(
-        auto_now_add=True, verbose_name="Время создания"
+        auto_now_add=True,
+        verbose_name="Время создания"
     )
 
     class Meta:
@@ -73,6 +75,10 @@ class NetworkObject(models.Model):
         """
         Выполняет дополнительные проверки перед сохранением объекта.
         """
+        if self.debt_to_supplier < Decimal("0.00"):
+            raise ValidationError(
+                {"debt_to_supplier": "Долг не может быть отрицательным."}
+            )
         if self.supplier and self.supplier.pk == self.pk:
             raise ValidationError(
                 "Объект не может быть своим собственным поставщиком."

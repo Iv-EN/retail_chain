@@ -22,9 +22,7 @@ class ProductSelectorForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        request = (
-            self.request if hasattr(self, "request") else kwargs.get("request")
-        )
+        request = self.request if hasattr(self, "request") else kwargs.get("request")
         network_object = None
         if (
             request
@@ -33,9 +31,7 @@ class ProductSelectorForm(forms.ModelForm):
         ):
             try:
                 network_object_id = request.resolver_match.kwargs["object_id"]
-                network_object = NetworkObject.objects.get(
-                    pk=network_object_id
-                )
+                network_object = NetworkObject.objects.get(pk=network_object_id)
             except (AttributeError, KeyError, NetworkObject.DoesNotExist):
                 pass
         if (
@@ -55,9 +51,7 @@ class ProductSelectorForm(forms.ModelForm):
         cleaned_data = super().clean()
         product_selector = cleaned_data.get("product_selector")
         if not product_selector and self.instance.pk is None:
-            raise forms.ValidationError(
-                "Необходимо выбрать существующий продукт."
-            )
+            raise forms.ValidationError("Необходимо выбрать существующий продукт.")
         if product_selector:
             cleaned_data["name"] = product_selector.name
             cleaned_data["model"] = product_selector.model
@@ -156,9 +150,7 @@ class NetworkObjectAdmin(admin.ModelAdmin):
     def supplier_link(self, obj):
         """Метод для отображения ссылки на поставщика."""
         if obj.supplier:
-            link = reverse(
-                "admin:network_networkobject_change", args=[obj.supplier.id]
-            )
+            link = reverse("admin:network_networkobject_change", args=[obj.supplier.id])
             return format_html('<a href="{}">{}</a>', link, obj.supplier.name)
         return "Поставщик отсутствует"
 
