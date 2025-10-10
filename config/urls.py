@@ -23,7 +23,7 @@ urlpatterns = [
     path("network/", include(
         ("network.urls", "network"),
         namespace="network")
-         ),
+    ),
 ]
 urlpatterns += [
     path(

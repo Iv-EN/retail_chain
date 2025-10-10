@@ -8,55 +8,60 @@ from django.utils.html import format_html
 from .models import NetworkObject, Product
 
 
-# class ProductSelectorForm(forms.ModelForm):
-#     product_selector = forms.ModelChoiceField(
-#         queryset=Product.objects.none(),
-#         required=False,
-#         label="Выбрать существующий продукт",
-#         help_text="Выберите продукт, связанный с поставщиком.",
-#     )
-#
-#     class Meta:
-#         model = Product
-#         fields = ["product_selector"]
-#
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         request = self.request if hasattr(self, "request") else kwargs.get("request")
-#         network_object = None
-#         if (
-#             request
-#             and request.resolver_match
-#             and "object_id" in request.resolver_match.kwargs
-#         ):
-#             try:
-#                 network_object_id = request.resolver_match.kwargs["object_id"]
-#                 network_object = NetworkObject.objects.get(pk=network_object_id)
-#             except (AttributeError, KeyError, NetworkObject.DoesNotExist):
-#                 pass
-#         if (
-#             not network_object
-#             and isinstance(self.instance, Product)
-#             and self.instance.network_object
-#         ):
-#             network_object = self.instance.network_object
-#         if network_object and network_object.supplier:
-#             self.fields["product_selector"].queryset = Product.objects.filter(
-#                 network_object=network_object.supplier
-#             )
-#         else:
-#             self.fields["product_selector"].queryset = Product.objects.none()
-#
-#     def clean(self):
-#         cleaned_data = super().clean()
-#         product_selector = cleaned_data.get("product_selector")
-#         if not product_selector and self.instance.pk is None:
-#             raise forms.ValidationError("Необходимо выбрать существующий продукт.")
-#         if product_selector:
-#             cleaned_data["name"] = product_selector.name
-#             cleaned_data["model"] = product_selector.model
-#             cleaned_data["release_date"] = product_selector.release_date
-#         return cleaned_data
+class ProductSelectorForm(forms.ModelForm):
+    product_selector = forms.ModelChoiceField(
+        queryset=Product.objects.none(),
+        required=False,
+        label="Выбрать существующий продукт",
+        help_text="Выберите продукт, связанный с поставщиком.",
+    )
+
+    class Meta:
+        model = Product
+        fields = ["product_selector"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = (self.request if hasattr(self, "request")
+                   else kwargs.get("request"))
+        network_object = None
+        if (
+            request
+            and request.resolver_match
+            and "object_id" in request.resolver_match.kwargs
+        ):
+            try:
+                network_object_id = request.resolver_match.kwargs["object_id"]
+                network_object = NetworkObject.objects.get(
+                    pk=network_object_id
+                )
+            except (AttributeError, KeyError, NetworkObject.DoesNotExist):
+                pass
+        if (
+            not network_object
+            and isinstance(self.instance, Product)
+            and self.instance.network_object
+        ):
+            network_object = self.instance.network_object
+        if network_object and network_object.supplier:
+            self.fields["product_selector"].queryset = Product.objects.filter(
+                network_object=network_object.supplier
+            )
+        else:
+            self.fields["product_selector"].queryset = Product.objects.none()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        product_selector = cleaned_data.get("product_selector")
+        if not product_selector and self.instance.pk is None:
+            raise forms.ValidationError(
+                "Необходимо выбрать существующий продукт."
+            )
+        if product_selector:
+            cleaned_data["name"] = product_selector.name
+            cleaned_data["model"] = product_selector.model
+            cleaned_data["release_date"] = product_selector.release_date
+        return cleaned_data
 
 
 class ProductInlineFormSet(admin.TabularInline):
