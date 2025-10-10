@@ -7,4 +7,4 @@ class NetworkConfig(AppConfig):
     verbose_name = "Сеть по продаже электроники"
 
     def ready(self):
-        import network.signals
+        import network.signals  # noqa: F401

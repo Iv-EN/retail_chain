@@ -6,7 +6,6 @@ from django.db import models, transaction
 
 class NetworkObject(models.Model):
     """Описывает звено сети."""
-
     name = models.CharField(max_length=255, verbose_name="Наименование")
     email = models.EmailField(blank=True, verbose_name="Электронная почта")
     country = models.CharField(max_length=100, verbose_name="Страна")
@@ -68,7 +67,7 @@ class NetworkObject(models.Model):
         elif lvl == 1:
             return "Розничная сеть"
         else:
-            return f"Индивидуальный предприниматель"
+            return "Индивидуальный предприниматель"
 
     def clean(self):
         """
@@ -79,7 +78,6 @@ class NetworkObject(models.Model):
                 "Объект не может быть своим собственным поставщиком."
             )
         if self.supplier:
-            visited_ids = set()
             current_node = self.supplier
             distance = 0
             while current_node is not None:
@@ -88,7 +86,9 @@ class NetworkObject(models.Model):
                 distance += 1
                 if distance > 2:
                     raise ValidationError(
-                        "Цепочка поставщиков не может содержать более 3 звеньев."
+                        """
+                        Цепочка поставщиков не может содержать более 3 звеньев.
+                        """
                     )
                 current_node = current_node.supplier
 
@@ -112,7 +112,7 @@ class Product(models.Model):
     )
 
     class Meta:
-        verbose_name: "Продукт"
+        verbose_name: "Продукт"  # noqa: F821
         verbose_name_plural = "Продукты"
 
     def __str__(self):

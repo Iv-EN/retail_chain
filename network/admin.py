@@ -68,7 +68,6 @@ class ProductSelectorForm(forms.ModelForm):
 class ProductInlineFormSet(admin.TabularInline):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        request = kwargs.get("request")
         obj = kwargs.get("instance")
         if obj and obj.level != 0:
             self.can_add = False
@@ -109,7 +108,7 @@ class ProductInlineForm(forms.ModelForm):
                     or network_obj_instance.level != 0
                 ):
                     raise forms.ValidationError(
-                        "Продукты можно создавать только для заводов (уровень 0)."
+                        "Продукты можно создавать только для заводов."
                     )
                 self.fields["network_object"].disabled = True
         elif self.instance and self.instance.pk:
